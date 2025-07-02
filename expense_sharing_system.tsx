@@ -29,7 +29,17 @@ const ExpenseSharingSystem = () => {
   useEffect(() => {
     try {
       const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
-      const firebaseConfig = getEnv('NEXT_PUBLIC_FIREBASE_CONFIG') ? JSON.parse(getEnv('NEXT_PUBLIC_FIREBASE_CONFIG')) : {};
+      const firebaseConfig = getEnv('NEXT_PUBLIC_FIREBASE_CONFIG')
+        ? JSON.parse(getEnv('NEXT_PUBLIC_FIREBASE_CONFIG'))
+        : {
+            apiKey: "AIzaSyAse2I0D2TlfyXXzhoHTraG5R6QEphllVE",
+            authDomain: "spliy-expense-app.firebaseapp.com",
+            projectId: "spliy-expense-app",
+            storageBucket: "spliy-expense-app.firebasestorage.app",
+            messagingSenderId: "530776942195",
+            appId: "1:530776942195:web:5838e23c250d5e721e2c06",
+            measurementId: "G-9ZCE53653E"
+          };
 
       if (!Object.keys(firebaseConfig).length) {
         setErrorMessage("Firebase configuration is missing. Please ensure NEXT_PUBLIC_FIREBASE_CONFIG is provided.");
