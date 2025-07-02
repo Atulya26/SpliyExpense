@@ -106,7 +106,7 @@ const ExpenseSharingSystem = () => {
   // Fetch members and expenses for the active group
   useEffect(() => {
     if (!db || !activeGroup?.id) {
-      setActiveGroup(prev => prev ? { ...prev, members: [], expenses: [] } : null); // Clear members/expenses if no active group
+      setActiveGroup((prev: any) => prev ? { ...prev, members: [], expenses: [] } : null); // Explicitly type prev as any
       return;
     }
 
@@ -291,7 +291,7 @@ const ExpenseSharingSystem = () => {
       }
 
       // Calculate split amount based on type
-      let splitAmount;
+      let splitAmount: number = 0;
       if (splitType === 'equal') {
         splitAmount = amount / splitWith.length;
       } else if (splitType === 'custom') {
