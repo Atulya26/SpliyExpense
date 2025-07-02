@@ -4,12 +4,12 @@ import { Plus, Users, Receipt, Calculator, UserPlus, Trash2, Edit3, Check, X } f
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from 'firebase/firestore';
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Dialog } from "@/components/ui/dialog";
+import { Button } from "./components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./components/ui/card";
+import { Input } from "./components/ui/input";
+import { Label } from "./components/ui/label";
+import { Select } from "./components/ui/select";
+import { Dialog } from "./components/ui/dialog";
 
 const getEnv = (key: string, fallback: string = ''): string => {
   if (typeof process !== 'undefined' && process.env && process.env[key]) {
