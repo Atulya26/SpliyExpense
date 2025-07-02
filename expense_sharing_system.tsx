@@ -4,6 +4,12 @@ import { Plus, Users, Receipt, Calculator, UserPlus, Trash2, Edit3, Check, X } f
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from 'firebase/firestore';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Dialog } from "@/components/ui/dialog";
 
 const getEnv = (key: string, fallback: string = ''): string => {
   if (typeof process !== 'undefined' && process.env && process.env[key]) {
@@ -361,7 +367,7 @@ const ExpenseSharingSystem = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-indigo-600 text-xl font-semibold">Loading Expense System...</div>
+        <span className="text-blue-600 text-xl font-semibold">Loading Expense System...</span>
       </div>
     );
   }
@@ -369,94 +375,102 @@ const ExpenseSharingSystem = () => {
   if (errorMessage) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50">
-        <div className="bg-white p-6 rounded-xl shadow-lg text-red-700">
-          <h3 className="text-lg font-semibold mb-2">Error:</h3>
-          <p>{errorMessage}</p>
-          <p className="text-sm mt-2">Please ensure Firebase is correctly configured and your network is stable.</p>
-        </div>
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-700">{errorMessage}</p>
+            <p className="text-sm mt-2 text-gray-500">Please ensure Firebase is correctly configured and your network is stable.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 font-inter">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-indigo-100 rounded-full">
-                <Receipt className="h-8 w-8 text-indigo-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Expense Splitter</h1>
-                <p className="text-gray-600">Split bills fairly among friends</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowCreateGroup(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              <span>New Group</span>
-            </button>
-          </div>
-
-          {/* User ID Display */}
-          {userId && (
-            <div className="mb-4 text-sm text-gray-700 bg-gray-100 p-3 rounded-lg flex items-center justify-between">
-              <span>Your User ID: <span className="font-mono font-semibold text-indigo-700 break-all">{userId}</span></span>
-              <span className="text-xs text-gray-500 ml-2">(Share this ID for group identification)</span>
-            </div>
-          )}
-
-          {/* Group Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Group</label>
-            <select
-              value={activeGroup?.id || ''}
-              onChange={(e) => setActiveGroup(groups.find(g => g.id === e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            >
-              <option value="">Choose a group...</option>
-              {groups.map(group => (
-                <option key={group.id} value={group.id}>{group.name}</option>
-              ))}
-            </select>
-          </div>
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 to-indigo-100 font-inter">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white shadow-xl flex flex-col p-6 gap-6 min-h-screen">
+        <div className="flex items-center gap-3 mb-8">
+          <Receipt className="h-8 w-8 text-blue-600" />
+          <span className="text-2xl font-bold text-gray-900">Expense Splitter</span>
         </div>
-
-        {activeGroup ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Members and Controls */}
-            <div className="space-y-6">
-              {/* Members */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-indigo-600" />
-                    <h2 className="text-xl font-semibold text-gray-900">Members</h2>
-                  </div>
-                  <button
-                    onClick={() => setShowAddMember(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
+        <nav className="flex flex-col gap-2">
+          <Button variant="ghost" className="justify-start w-full">Groups</Button>
+          <Button variant="ghost" className="justify-start w-full">Members</Button>
+          <Button variant="ghost" className="justify-start w-full">Expenses</Button>
+        </nav>
+        <div className="mt-auto">
+          {userId && (
+            <Card className="bg-blue-50 border-blue-100">
+              <CardContent className="p-3 text-xs text-gray-700">
+                <span>Your User ID:</span>
+                <span className="block font-mono font-semibold text-blue-700 break-all">{userId}</span>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </aside>
+      {/* Main Content */}
+      <main className="flex-1 p-8 overflow-y-auto">
+        {/* Cards for Groups, Members, Expenses, Balances, Settlements will go here in next steps */}
+        {/* Placeholder for now */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Groups</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="group-select">Select Group</Label>
+                  <Select
+                    id="group-select"
+                    value={activeGroup?.id || ''}
+                    onChange={e => setActiveGroup(groups.find(g => g.id === e.target.value))}
+                    className="mt-1"
                   >
-                    <UserPlus className="h-4 w-4" />
-                  </button>
+                    <option value="">Choose a group...</option>
+                    {groups.map(group => (
+                      <option key={group.id} value={group.id}>{group.name}</option>
+                    ))}
+                  </Select>
                 </div>
-                <div className="space-y-3">
-                  {activeGroup.members && activeGroup.members.length > 0 ? (
+                <div className="flex gap-2 items-center">
+                  <Button onClick={() => setShowCreateGroup(true)}>
+                    <Plus className="h-4 w-4 mr-2" /> New Group
+                  </Button>
+                  {activeGroup && (
+                    <span className="text-sm text-gray-600 ml-2">Current: <span className="font-semibold text-blue-700">{activeGroup.name}</span></span>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Members</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-base">Members</Label>
+                  <Button variant="outline" onClick={() => setShowAddMember(true)}>
+                    <UserPlus className="h-4 w-4 mr-2" /> Add Member
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {activeGroup && activeGroup.members && activeGroup.members.length > 0 ? (
                     activeGroup.members.map((member: any) => (
-                      <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={member.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-50 transition">
                         <div>
-                          <div className="font-medium text-gray-900">{member.name}</div>
-                          <div className="text-sm text-gray-600">{member.email}</div>
+                          <span className="font-medium text-gray-900">{member.name}</span>
+                          <span className="ml-2 text-xs text-gray-500">{member.email}</span>
                         </div>
-                        <button
-                          onClick={() => removeMember(member.id)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                        >
+                        <Button variant="ghost" className="text-red-600 hover:text-red-800 p-1" onClick={() => removeMember(member.id)}>
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     ))
                   ) : (
@@ -464,145 +478,66 @@ const ExpenseSharingSystem = () => {
                   )}
                 </div>
               </div>
-
-              {/* Balances */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Calculator className="h-5 w-5 text-indigo-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Balances</h2>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Expenses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-base">Expenses</Label>
+                  <Button onClick={() => setShowAddExpense(true)}>
+                    <Plus className="h-4 w-4 mr-2" /> Add Expense
+                  </Button>
                 </div>
-                <div className="space-y-3">
-                  {calculateBalances().map((balance, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-gray-900">{balance.name}</span>
-                      <span className={`font-bold ${balance.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        ${Math.abs(balance.balance).toFixed(2)} {balance.balance >= 0 ? 'gets back' : 'owes'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Settlements */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Suggested Settlements</h2>
-                <div className="space-y-3">
-                  {calculateSettlements().map((settlement, index) => (
-                    <div key={index} className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <div className="text-sm text-gray-900">
-                        <span className="font-medium">{settlement.from}</span> owes{' '}
-                        <span className="font-medium">{settlement.to}</span>{' '}
-                        <span className="font-bold text-blue-600">${settlement.amount}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {calculateSettlements().length === 0 && (
-                    <div className="text-center text-gray-500 py-4">All settled up! 🎉</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Expenses */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Expenses</h2>
-                  <button
-                    onClick={() => setShowAddExpense(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-                  >
-                    <Plus className="h-5 w-5" />
-                    <span>Add Expense</span>
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {activeGroup.expenses && activeGroup.expenses.length > 0 ? (
+                <div className="space-y-2">
+                  {activeGroup && activeGroup.expenses && activeGroup.expenses.length > 0 ? (
                     activeGroup.expenses.map((expense: any) => (
-                      <div key={expense.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-semibold text-gray-900">{expense.description}</h3>
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => setEditingExpense(expense)}
-                                  className="text-blue-600 hover:text-blue-800 p-1"
-                                >
-                                  <Edit3 className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={() => deleteExpense(expense.id)}
-                                  className="text-red-600 hover:text-red-800 p-1"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
+                      <Card key={expense.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                        <CardContent className="p-3 flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-gray-900">{expense.description}</span>
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" className="text-blue-600 hover:text-blue-800 p-1" onClick={() => setEditingExpense(expense)}>
+                                <Edit3 className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" className="text-red-600 hover:text-red-800 p-1" onClick={() => deleteExpense(expense.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                              <span>Paid by: <span className="font-medium">{getMemberName(expense.paidBy)}</span></span>
-                              <span className="font-bold text-lg text-gray-900">${expense.amount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm text-gray-600">
-                              <span>Split with: {expense.splitWith.map((id: string) => getMemberName(id)).join(', ')}</span>
-                              <span>{expense.date}</span>
-                            </div>
-                            {expense.category && (
-                              <span className="inline-block mt-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                                {expense.category}
-                              </span>
-                            )}
                           </div>
-                        </div>
-                      </div>
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <span>Paid by: <span className="font-medium">{getMemberName(expense.paidBy)}</span></span>
+                            <span className="font-bold text-lg text-gray-900">${expense.amount.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>Split with: {expense.splitWith.map((id: string) => getMemberName(id)).join(', ')}</span>
+                            <span>{expense.date}</span>
+                          </div>
+                          {expense.category && (
+                            <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              {expense.category}
+                            </span>
+                          )}
+                        </CardContent>
+                      </Card>
                     ))
                   ) : (
-                    <div className="text-center text-gray-500 py-8">
-                      No expenses yet. Add your first expense to get started!
-                    </div>
+                    <div className="text-center text-gray-500 py-4">No expenses yet. Add your first expense to get started!</div>
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center text-gray-600">
-            <p className="mb-4">Select an existing group or create a new one to start tracking expenses.</p>
-            <button
-              onClick={() => setShowCreateGroup(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors mx-auto"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Create New Group</span>
-            </button>
-          </div>
-        )}
-
-        {/* Create Group Modal */}
-        {showCreateGroup && <CreateGroupModal onSubmit={createGroup} onClose={() => setShowCreateGroup(false)} />}
-
-        {/* Add Member Modal */}
-        {showAddMember && activeGroup && <AddMemberModal onSubmit={addMemberToGroup} onClose={() => setShowAddMember(false)} />}
-
-        {/* Add/Edit Expense Modal */}
-        {(showAddExpense || editingExpense) && (
-          <ExpenseModal
-            members={activeGroup?.members || []}
-            expense={editingExpense}
-            onSubmit={editingExpense ? updateExpense : addExpense}
-            onClose={() => {
-              setShowAddExpense(false);
-              setEditingExpense(null);
-            }}
-          />
-        )}
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   );
 };
 
-const CreateGroupModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: string; description: string }) => void; onClose: () => void }) => {
+const CreateGroupModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: (data: { name: string; description: string }) => void; onClose: () => void }) => {
   const [formData, setFormData] = useState({ name: '', description: '' });
 
   const handleSubmit = () => {
@@ -613,51 +548,48 @@ const CreateGroupModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: stri
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Group</h3>
-        <div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="e.g., Weekend Trip, Flatmates"
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
-              placeholder="Brief description of the group"
-              rows={3}
-            ></textarea>
-          </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
-            >
-              Create Group
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+    <Dialog open={open} onClose={onClose} title="Create New Group">
+      <div className="flex flex-col gap-4">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="e.g., Weekend Trip, Flatmates"
+          />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
+            placeholder="Brief description of the group"
+            rows={3}
+          ></textarea>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleSubmit}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
+          >
+            Create Group
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 
-const AddMemberModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: string; email: string }) => void; onClose: () => void }) => {
+const AddMemberModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: (data: { name: string; email: string }) => void; onClose: () => void }) => {
   const [formData, setFormData] = useState({ name: '', email: '' });
 
   const handleSubmit = () => {
@@ -668,51 +600,48 @@ const AddMemberModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: string
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Member</h3>
-        <div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Member's name"
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Member's email (optional)"
-            />
-          </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
-            >
-              Add Member
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+    <Dialog open={open} onClose={onClose} title="Add Member">
+      <div className="flex flex-col gap-4">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Member's name"
+          />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Member's email (optional)"
+          />
+        </div>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleSubmit}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
+          >
+            Add Member
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 
-const ExpenseModal = ({ members, expense, onSubmit, onClose }: { members: any[]; expense: any; onSubmit: (data: any) => void; onClose: () => void }) => {
+const ExpenseModal = ({ open, members, expense, onSubmit, onClose }: { open: boolean; members: any[]; expense: any; onSubmit: (data: any) => void; onClose: () => void }) => {
   const [formData, setFormData] = useState({
     description: expense?.description || '',
     amount: expense?.amount || '',
@@ -752,107 +681,102 @@ const ExpenseModal = ({ members, expense, onSubmit, onClose }: { members: any[];
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {expense ? 'Edit Expense' : 'Add Expense'}
-        </h3>
-        <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <input
-                type="text"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="What was this expense for?"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Paid By</label>
-              <select
-                value={formData.paidBy}
-                onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                {members.map(member => (
-                  <option key={member.id} value={member.id}>{member.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="">Select category...</option>
-                <option value="Food">Food</option>
-                <option value="Accommodation">Accommodation</option>
-                <option value="Transportation">Transportation</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Utilities">Utilities</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
+    <Dialog open={open} onClose={onClose} title="Add Expense">
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <input
+              type="text"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="What was this expense for?"
+            />
           </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Split With</label>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Paid By</label>
+            <select
+              value={formData.paidBy}
+              onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
               {members.map(member => (
-                <label key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={formData.splitWith.includes(member.id)}
-                    onChange={() => handleSplitWithChange(member.id)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <span className="text-gray-900">{member.name}</span>
-                </label>
+                <option key={member.id} value={member.id}>{member.name}</option>
               ))}
-            </div>
+            </select>
           </div>
-
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
-              {expense ? 'Update Expense' : 'Add Expense'}
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
+              <option value="">Select category...</option>
+              <option value="Food">Food</option>
+              <option value="Accommodation">Accommodation</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
         </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Split With</label>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {members.map(member => (
+              <label key={member.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={formData.splitWith.includes(member.id)}
+                  onChange={() => handleSplitWithChange(member.id)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <span className="text-gray-900">{member.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex space-x-3">
+          <button
+            onClick={handleSubmit}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition-colors"
+          >
+            {expense ? 'Update Expense' : 'Add Expense'}
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 
