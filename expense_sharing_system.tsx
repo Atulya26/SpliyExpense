@@ -4,11 +4,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from 'firebase/firestore';
 
-// Global variables provided by the Canvas environment
-declare const __app_id: string | undefined;
-declare const __firebase_config: string | undefined;
-declare const __initial_auth_token: string | undefined;
-
 const ExpenseSharingSystem = () => {
   const [groups, setGroups] = useState<any[]>([]);
   const [activeGroup, setActiveGroup] = useState<any | null>(null);
@@ -25,11 +20,22 @@ const ExpenseSharingSystem = () => {
   // Initialize Firebase and authenticate user
   useEffect(() => {
     try {
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
-      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+      // Your Firebase Configuration (hardcoded for direct use)
+      const firebaseConfig = {
+        apiKey: "AIzaSyAse2I0D2TlfyXXzhoHTraG5R6QEphllVE",
+        authDomain: "spliy-expense-app.firebaseapp.com",
+        projectId: "spliy-expense-app",
+        storageBucket: "spliy-expense-app.firebasestorage.app",
+        messagingSenderId: "530776942195",
+        appId: "1:530776942195:web:5838e23c250d5e721e2c06",
+        measurementId: "G-9ZCE53653E"
+      };
 
-      if (!Object.keys(firebaseConfig).length) {
-        setErrorMessage("Firebase configuration is missing. Please ensure __firebase_config is provided.");
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
+
+      if (!Object.keys(firebaseConfig).length || !firebaseConfig.apiKey) {
+        setErrorMessage("Firebase configuration is missing or incomplete. Please check the hardcoded values.");
         setLoading(false);
         return;
       }
@@ -46,13 +52,9 @@ const ExpenseSharingSystem = () => {
           setUserId(user.uid);
           setLoading(false);
         } else {
-          // If no user, try to sign in with custom token or anonymously
+          // If no user, try to sign in anonymously
           try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(firebaseAuth, __initial_auth_token);
-            } else {
-              await signInAnonymously(firebaseAuth);
-            }
+            await signInAnonymously(firebaseAuth);
           } catch (error: any) {
             console.error("Firebase authentication error:", error);
             setErrorMessage(`Authentication failed: ${error.message}`);
@@ -74,8 +76,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !userId) return;
 
     setLoading(true);
-    // Public data: /artifacts/{appId}/public/data/groups
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+    // Your App ID (hardcoded for direct use)
+    const appId = "spliy-expense-app";
     const groupsCollectionRef = collection(db, `artifacts/${appId}/public/data/groups`);
 
     const unsubscribeGroups = onSnapshot(groupsCollectionRef, (snapshot) => {
@@ -113,7 +115,8 @@ const ExpenseSharingSystem = () => {
       return;
     }
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+    // Your App ID (hardcoded for direct use)
+    const appId = "spliy-expense-app";
     const groupDocRef = doc(db, `artifacts/${appId}/public/data/groups`, activeGroup.id);
     const membersCollectionRef = collection(groupDocRef, 'members');
     const expensesCollectionRef = collection(groupDocRef, 'expenses');
@@ -151,7 +154,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !userId) return;
     try {
       setLoading(true);
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
       const groupsCollectionRef = collection(db, `artifacts/${appId}/public/data/groups`);
       const newGroupRef = await addDoc(groupsCollectionRef, {
         name: groupData.name,
@@ -179,7 +183,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
       const membersCollectionRef = collection(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/members`);
       await addDoc(membersCollectionRef, {
         name: memberData.name,
@@ -199,7 +204,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
       const memberDocRef = doc(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/members`, memberId);
       await deleteDoc(memberDocRef);
       setLoading(false);
@@ -215,7 +221,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
       const expensesCollectionRef = collection(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/expenses`);
       await addDoc(expensesCollectionRef, {
         description: expenseData.description,
@@ -241,7 +248,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id || !editingExpense?.id) return;
     try {
       setLoading(true);
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
       const expenseDocRef = doc(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/expenses`, editingExpense.id);
       await updateDoc(expenseDocRef, {
         description: expenseData.description,
@@ -265,7 +273,8 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      // Your App ID (hardcoded for direct use)
+      const appId = "spliy-expense-app";
       const expenseDocRef = doc(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/expenses`, expenseId);
       await deleteDoc(expenseDocRef);
       setLoading(false);
@@ -372,7 +381,7 @@ const ExpenseSharingSystem = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 font-inter">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
@@ -573,15 +582,14 @@ const ExpenseSharingSystem = () => {
         )}
 
         {/* Create Group Modal */}
-        {showCreateGroup && <CreateGroupModal open={showCreateGroup} onSubmit={createGroup} onClose={() => setShowCreateGroup(false)} />}
+        {showCreateGroup && <CreateGroupModal onSubmit={createGroup} onClose={() => setShowCreateGroup(false)} />}
 
         {/* Add Member Modal */}
-        {showAddMember && activeGroup && <AddMemberModal open={showAddMember} onSubmit={addMemberToGroup} onClose={() => setShowAddMember(false)} />}
+        {showAddMember && activeGroup && <AddMemberModal onSubmit={addMemberToGroup} onClose={() => setShowAddMember(false)} />}
 
         {/* Add/Edit Expense Modal */}
         {(showAddExpense || editingExpense) && (
           <ExpenseModal
-            open={showAddExpense || !!editingExpense}
             members={activeGroup?.members || []}
             expense={editingExpense}
             onSubmit={editingExpense ? updateExpense : addExpense}
@@ -596,7 +604,7 @@ const ExpenseSharingSystem = () => {
   );
 };
 
-const CreateGroupModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: (data: { name: string; description: string }) => void; onClose: () => void }) => {
+const CreateGroupModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: string; description: string }) => void; onClose: () => void }) => {
   const [formData, setFormData] = useState({ name: '', description: '' });
 
   const handleSubmit = () => {
@@ -607,7 +615,7 @@ const CreateGroupModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${open ? '' : 'hidden'}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl p-6 w-full max-w-md">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Group</h3>
         <div>
@@ -651,7 +659,7 @@ const CreateGroupModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit
   );
 };
 
-const AddMemberModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: (data: { name: string; email: string }) => void; onClose: () => void }) => {
+const AddMemberModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: string; email: string }) => void; onClose: () => void }) => {
   const [formData, setFormData] = useState({ name: '', email: '' });
 
   const handleSubmit = () => {
@@ -662,7 +670,7 @@ const AddMemberModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: 
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${open ? '' : 'hidden'}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl p-6 w-full max-w-md">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Member</h3>
         <div>
@@ -706,7 +714,7 @@ const AddMemberModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: 
   );
 };
 
-const ExpenseModal = ({ open, members, expense, onSubmit, onClose }: { open: boolean; members: any[]; expense: any; onSubmit: (data: any) => void; onClose: () => void }) => {
+const ExpenseModal = ({ members, expense, onSubmit, onClose }: { members: any[]; expense: any; onSubmit: (data: any) => void; onClose: () => void }) => {
   const [formData, setFormData] = useState({
     description: expense?.description || '',
     amount: expense?.amount || '',
@@ -746,7 +754,7 @@ const ExpenseModal = ({ open, members, expense, onSubmit, onClose }: { open: boo
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${open ? '' : 'hidden'}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {expense ? 'Edit Expense' : 'Add Expense'}
