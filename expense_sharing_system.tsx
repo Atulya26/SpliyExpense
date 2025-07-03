@@ -1,17 +1,13 @@
-/// <reference types="node" />
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Users, Receipt, Calculator, UserPlus, Trash2, Edit3, Check, X } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from 'firebase/firestore';
 
-// Use the current getEnv helper for Firebase config
-const getEnv = (key: string, fallback: string = ''): string => {
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key] as string;
-  }
-  return fallback;
-};
+// Global variables provided by the Canvas environment
+declare const __app_id: string | undefined;
+declare const __firebase_config: string | undefined;
+declare const __initial_auth_token: string | undefined;
 
 const ExpenseSharingSystem = () => {
   const [groups, setGroups] = useState<any[]>([]);
@@ -29,21 +25,11 @@ const ExpenseSharingSystem = () => {
   // Initialize Firebase and authenticate user
   useEffect(() => {
     try {
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
-      const firebaseConfig = getEnv('NEXT_PUBLIC_FIREBASE_CONFIG')
-        ? JSON.parse(getEnv('NEXT_PUBLIC_FIREBASE_CONFIG'))
-        : {
-            apiKey: "AIzaSyAse2I0D2TlfyXXzhoHTraG5R6QEphllVE",
-            authDomain: "spliy-expense-app.firebaseapp.com",
-            projectId: "spliy-expense-app",
-            storageBucket: "spliy-expense-app.firebasestorage.app",
-            messagingSenderId: "530776942195",
-            appId: "1:530776942195:web:5838e23c250d5e721e2c06",
-            measurementId: "G-9ZCE53653E"
-          };
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 
       if (!Object.keys(firebaseConfig).length) {
-        setErrorMessage("Firebase configuration is missing. Please ensure NEXT_PUBLIC_FIREBASE_CONFIG is provided.");
+        setErrorMessage("Firebase configuration is missing. Please ensure __firebase_config is provided.");
         setLoading(false);
         return;
       }
@@ -60,8 +46,13 @@ const ExpenseSharingSystem = () => {
           setUserId(user.uid);
           setLoading(false);
         } else {
+          // If no user, try to sign in with custom token or anonymously
           try {
-            await signInAnonymously(firebaseAuth);
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(firebaseAuth, __initial_auth_token);
+            } else {
+              await signInAnonymously(firebaseAuth);
+            }
           } catch (error: any) {
             console.error("Firebase authentication error:", error);
             setErrorMessage(`Authentication failed: ${error.message}`);
@@ -84,7 +75,8 @@ const ExpenseSharingSystem = () => {
 
     setLoading(true);
     // Public data: /artifacts/{appId}/public/data/groups
-    const groupsCollectionRef = collection(db, `artifacts/${getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app')}/public/data/groups`);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
+    const groupsCollectionRef = collection(db, `artifacts/${appId}/public/data/groups`);
 
     const unsubscribeGroups = onSnapshot(groupsCollectionRef, (snapshot) => {
       const fetchedGroups = snapshot.docs.map(doc => ({
@@ -117,11 +109,11 @@ const ExpenseSharingSystem = () => {
   // Fetch members and expenses for the active group
   useEffect(() => {
     if (!db || !activeGroup?.id) {
-      setActiveGroup((prev: any) => prev ? { ...prev, members: [], expenses: [] } : null); // Explicitly type prev as any
+      setActiveGroup((prev: any) => prev ? { ...prev, members: [], expenses: [] } : null); // Clear members/expenses if no active group
       return;
     }
 
-    const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
     const groupDocRef = doc(db, `artifacts/${appId}/public/data/groups`, activeGroup.id);
     const membersCollectionRef = collection(groupDocRef, 'members');
     const expensesCollectionRef = collection(groupDocRef, 'expenses');
@@ -159,7 +151,7 @@ const ExpenseSharingSystem = () => {
     if (!db || !userId) return;
     try {
       setLoading(true);
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
       const groupsCollectionRef = collection(db, `artifacts/${appId}/public/data/groups`);
       const newGroupRef = await addDoc(groupsCollectionRef, {
         name: groupData.name,
@@ -187,7 +179,7 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
       const membersCollectionRef = collection(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/members`);
       await addDoc(membersCollectionRef, {
         name: memberData.name,
@@ -207,7 +199,7 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
       const memberDocRef = doc(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/members`, memberId);
       await deleteDoc(memberDocRef);
       setLoading(false);
@@ -223,7 +215,7 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
       const expensesCollectionRef = collection(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/expenses`);
       await addDoc(expensesCollectionRef, {
         description: expenseData.description,
@@ -249,7 +241,7 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id || !editingExpense?.id) return;
     try {
       setLoading(true);
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
       const expenseDocRef = doc(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/expenses`, editingExpense.id);
       await updateDoc(expenseDocRef, {
         description: expenseData.description,
@@ -273,7 +265,7 @@ const ExpenseSharingSystem = () => {
     if (!db || !activeGroup?.id) return;
     try {
       setLoading(true);
-      const appId = getEnv('NEXT_PUBLIC_APP_ID', 'default-expense-app');
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-expense-app';
       const expenseDocRef = doc(db, `artifacts/${appId}/public/data/groups/${activeGroup.id}/expenses`, expenseId);
       await deleteDoc(expenseDocRef);
       setLoading(false);
@@ -362,7 +354,7 @@ const ExpenseSharingSystem = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <span className="text-blue-600 text-xl font-semibold">Loading Expense System...</span>
+        <div className="text-indigo-600 text-xl font-semibold">Loading Expense System...</div>
       </div>
     );
   }
@@ -370,146 +362,236 @@ const ExpenseSharingSystem = () => {
   if (errorMessage) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50">
-        <div className="max-w-md w-full">
-          <h1 className="text-red-700 text-xl font-semibold mb-4">Error</h1>
-          <p className="text-red-700">{errorMessage}</p>
-          <p className="text-sm mt-2 text-gray-500">Please ensure Firebase is correctly configured and your network is stable.</p>
+        <div className="bg-white p-6 rounded-xl shadow-lg text-red-700">
+          <h3 className="text-lg font-semibold mb-2">Error:</h3>
+          <p>{errorMessage}</p>
+          <p className="text-sm mt-2">Please ensure Firebase is correctly configured and your network is stable.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 to-indigo-100 font-inter">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-xl flex flex-col p-6 gap-6 min-h-screen">
-        <div className="flex items-center gap-3 mb-8">
-          <Receipt className="h-8 w-8 text-blue-600" />
-          <span className="text-2xl font-bold text-gray-900">Expense Splitter</span>
-        </div>
-        <nav className="flex flex-col gap-2">
-          <button className="justify-start w-full">Groups</button>
-          <button className="justify-start w-full">Members</button>
-          <button className="justify-start w-full">Expenses</button>
-        </nav>
-        <div className="mt-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-indigo-100 rounded-full">
+                <Receipt className="h-8 w-8 text-indigo-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Expense Splitter</h1>
+                <p className="text-gray-600">Split bills fairly among friends</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowCreateGroup(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              <span>New Group</span>
+            </button>
+          </div>
+
+          {/* User ID Display */}
           {userId && (
-            <div className="bg-blue-50 border-blue-100 p-3 text-xs text-gray-700">
-              <span>Your User ID:</span>
-              <span className="block font-mono font-semibold text-blue-700 break-all">{userId}</span>
+            <div className="mb-4 text-sm text-gray-700 bg-gray-100 p-3 rounded-lg flex items-center justify-between">
+              <span>Your User ID: <span className="font-mono font-semibold text-indigo-700 break-all">{userId}</span></span>
+              <span className="text-xs text-gray-500 ml-2">(Share this ID for group identification)</span>
             </div>
           )}
+
+          {/* Group Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Group</label>
+            <select
+              value={activeGroup?.id || ''}
+              onChange={(e) => setActiveGroup(groups.find(g => g.id === e.target.value))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Choose a group...</option>
+              {groups.map(group => (
+                <option key={group.id} value={group.id}>{group.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
-      </aside>
-      {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        {/* Cards for Groups, Members, Expenses, Balances, Settlements will go here in next steps */}
-        {/* Placeholder for now */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div>
-            <h2>Groups</h2>
-            <div className="flex flex-col gap-4">
-              <div>
-                <label htmlFor="group-select">Select Group</label>
-                <select
-                  id="group-select"
-                  value={activeGroup?.id || ''}
-                  onChange={e => setActiveGroup(groups.find(g => g.id === e.target.value))}
-                  className="mt-1"
-                >
-                  <option value="">Choose a group...</option>
-                  {groups.map(group => (
-                    <option key={group.id} value={group.id}>{group.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button onClick={() => setShowCreateGroup(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> New Group
-                </button>
-                {activeGroup && (
-                  <span className="text-sm text-gray-600 ml-2">Current: <span className="font-semibold text-blue-700">{activeGroup.name}</span></span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div>
-            <h2>Members</h2>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between mb-2">
-                <span>Members</span>
-                <button onClick={() => setShowAddMember(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Member
-                </button>
-              </div>
-              <div className="space-y-2">
-                {activeGroup && activeGroup.members && activeGroup.members.length > 0 ? (
-                  activeGroup.members.map((member: any) => (
-                    <div key={member.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-50 transition">
-                      <div>
-                        <span className="font-medium text-gray-900">{member.name}</span>
-                        <span className="ml-2 text-xs text-gray-500">{member.email}</span>
+
+        {activeGroup ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Members and Controls */}
+            <div className="space-y-6">
+              {/* Members */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-indigo-600" />
+                    <h2 className="text-xl font-semibold text-gray-900">Members</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowAddMember(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {activeGroup.members && activeGroup.members.length > 0 ? (
+                    activeGroup.members.map((member: any) => (
+                      <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium text-gray-900">{member.name}</div>
+                          <div className="text-sm text-gray-600">{member.email}</div>
+                        </div>
+                        <button
+                          onClick={() => removeMember(member.id)}
+                          className="text-red-600 hover:text-red-800 p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
-                      <button onClick={() => removeMember(member.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">No members yet. Add some!</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Balances */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Calculator className="h-5 w-5 text-indigo-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">Balances</h2>
+                </div>
+                <div className="space-y-3">
+                  {calculateBalances().map((balance, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="font-medium text-gray-900">{balance.name}</span>
+                      <span className={`font-bold ${balance.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${Math.abs(balance.balance).toFixed(2)} {balance.balance >= 0 ? 'gets back' : 'owes'}
+                      </span>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center text-gray-500 py-4">No members yet. Add some!</div>
-                )}
+                  ))}
+                </div>
+              </div>
+
+              {/* Settlements */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Suggested Settlements</h2>
+                <div className="space-y-3">
+                  {calculateSettlements().map((settlement, index) => (
+                    <div key={index} className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <div className="text-sm text-gray-900">
+                        <span className="font-medium">{settlement.from}</span> owes{' '}
+                        <span className="font-medium">{settlement.to}</span>{' '}
+                        <span className="font-bold text-blue-600">${settlement.amount}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {calculateSettlements().length === 0 && (
+                    <div className="text-center text-gray-500 py-4">All settled up! 🎉</div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <div>
-            <h2>Expenses</h2>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between mb-2">
-                <span>Expenses</span>
-                <button onClick={() => setShowAddExpense(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Expense
-                </button>
-              </div>
-              <div className="space-y-2">
-                {activeGroup && activeGroup.expenses && activeGroup.expenses.length > 0 ? (
-                  activeGroup.expenses.map((expense: any) => (
-                    <div key={expense.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-                      <div className="p-3 flex flex-col gap-1">
+
+            {/* Right Column - Expenses */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Expenses</h2>
+                  <button
+                    onClick={() => setShowAddExpense(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>Add Expense</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {activeGroup.expenses && activeGroup.expenses.length > 0 ? (
+                    activeGroup.expenses.map((expense: any) => (
+                      <div key={expense.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-gray-900">{expense.description}</span>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => setEditingExpense(expense)}>
-                              <Edit3 className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => deleteExpense(expense.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-semibold text-gray-900">{expense.description}</h3>
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => setEditingExpense(expense)}
+                                  className="text-blue-600 hover:text-blue-800 p-1"
+                                >
+                                  <Edit3 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteExpense(expense.id)}
+                                  className="text-red-600 hover:text-red-800 p-1"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                              <span>Paid by: <span className="font-medium">{getMemberName(expense.paidBy)}</span></span>
+                              <span className="font-bold text-lg text-gray-900">${expense.amount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm text-gray-600">
+                              <span>Split with: {expense.splitWith.map((id: string) => getMemberName(id)).join(', ')}</span>
+                              <span>{expense.date}</span>
+                            </div>
+                            {expense.category && (
+                              <span className="inline-block mt-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                                {expense.category}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center justify-between text-sm text-gray-600">
-                          <span>Paid by: <span className="font-medium">{getMemberName(expense.paidBy)}</span></span>
-                          <span className="font-bold text-lg text-gray-900">${expense.amount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>Split with: {expense.splitWith.map((id: string) => getMemberName(id)).join(', ')}</span>
-                          <span>{expense.date}</span>
-                        </div>
-                        {expense.category && (
-                          <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                            {expense.category}
-                          </span>
-                        )}
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-8">
+                      No expenses yet. Add your first expense to get started!
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center text-gray-500 py-4">No expenses yet. Add your first expense to get started!</div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg p-6 text-center text-gray-600">
+            <p className="mb-4">Select an existing group or create a new one to start tracking expenses.</p>
+            <button
+              onClick={() => setShowCreateGroup(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors mx-auto"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Create New Group</span>
+            </button>
+          </div>
+        )}
+
+        {/* Create Group Modal */}
+        {showCreateGroup && <CreateGroupModal open={showCreateGroup} onSubmit={createGroup} onClose={() => setShowCreateGroup(false)} />}
+
+        {/* Add Member Modal */}
+        {showAddMember && activeGroup && <AddMemberModal open={showAddMember} onSubmit={addMemberToGroup} onClose={() => setShowAddMember(false)} />}
+
+        {/* Add/Edit Expense Modal */}
+        {(showAddExpense || editingExpense) && (
+          <ExpenseModal
+            open={showAddExpense || !!editingExpense}
+            members={activeGroup?.members || []}
+            expense={editingExpense}
+            onSubmit={editingExpense ? updateExpense : addExpense}
+            onClose={() => {
+              setShowAddExpense(false);
+              setEditingExpense(null);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -525,10 +607,10 @@ const CreateGroupModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ${open ? '' : 'hidden'}`}>
-      <div className="bg-white p-8 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Create New Group</h2>
-        <div className="flex flex-col gap-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${open ? '' : 'hidden'}`}>
+      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Group</h3>
+        <div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
             <input
@@ -580,10 +662,10 @@ const AddMemberModal = ({ open, onSubmit, onClose }: { open: boolean; onSubmit: 
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ${open ? '' : 'hidden'}`}>
-      <div className="bg-white p-8 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Add Member</h2>
-        <div className="flex flex-col gap-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${open ? '' : 'hidden'}`}>
+      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Member</h3>
+        <div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
             <input
@@ -664,10 +746,12 @@ const ExpenseModal = ({ open, members, expense, onSubmit, onClose }: { open: boo
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ${open ? '' : 'hidden'}`}>
-      <div className="bg-white p-8 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Add Expense</h2>
-        <div className="flex flex-col gap-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${open ? '' : 'hidden'}`}>
+      <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {expense ? 'Edit Expense' : 'Add Expense'}
+        </h3>
+        <div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
