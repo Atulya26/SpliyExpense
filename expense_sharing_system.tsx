@@ -432,7 +432,7 @@ const ExpenseSharingSystem = () => {
             {/* Left Column - Members and Controls */}
             <div className="space-y-6">
               {/* Members */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200 ring-1 ring-indigo-100 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
                     <Users className="h-5 w-5 text-indigo-600" />
@@ -448,7 +448,7 @@ const ExpenseSharingSystem = () => {
                 <div className="space-y-3">
                   {activeGroup.members && activeGroup.members.length > 0 ? (
                     activeGroup.members.map((member: any) => (
-                      <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition-colors">
                         <div>
                           <div className="font-medium text-gray-900">{member.name}</div>
                           <div className="text-sm text-gray-600">{member.email}</div>
@@ -468,14 +468,14 @@ const ExpenseSharingSystem = () => {
               </div>
 
               {/* Balances */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200 ring-1 ring-indigo-100 p-6">
                 <div className="flex items-center space-x-2 mb-4">
                   <Calculator className="h-5 w-5 text-indigo-600" />
                   <h2 className="text-xl font-semibold text-gray-900">Balances</h2>
                 </div>
                 <div className="space-y-3">
                   {calculateBalances().map((balance, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition-colors">
                       <span className="font-medium text-gray-900">{balance.name}</span>
                       <span className={`font-bold ${balance.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${Math.abs(balance.balance).toFixed(2)} {balance.balance >= 0 ? 'gets back' : 'owes'}
@@ -486,7 +486,7 @@ const ExpenseSharingSystem = () => {
               </div>
 
               {/* Settlements */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200 ring-1 ring-indigo-100 p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Suggested Settlements</h2>
                 <div className="space-y-3">
                   {calculateSettlements().map((settlement, index) => (
@@ -507,7 +507,7 @@ const ExpenseSharingSystem = () => {
 
             {/* Right Column - Expenses */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="bg-white rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200 ring-1 ring-indigo-100 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">Expenses</h2>
                   <button
@@ -616,7 +616,7 @@ const CreateGroupModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: stri
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-2xl ring-1 ring-indigo-100 p-8 bg-gradient-to-br from-white via-indigo-50 to-blue-50">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Group</h3>
         <div>
           <div className="mb-4">
@@ -671,7 +671,7 @@ const AddMemberModal = ({ onSubmit, onClose }: { onSubmit: (data: { name: string
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-2xl ring-1 ring-indigo-100 p-8 bg-gradient-to-br from-white via-indigo-50 to-blue-50">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Member</h3>
         <div>
           <div className="mb-4">
@@ -755,7 +755,7 @@ const ExpenseModal = ({ members, expense, onSubmit, onClose }: { members: any[];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl ring-1 ring-indigo-100 p-8 bg-gradient-to-br from-white via-indigo-50 to-blue-50">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {expense ? 'Edit Expense' : 'Add Expense'}
         </h3>
