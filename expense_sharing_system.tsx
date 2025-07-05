@@ -3,8 +3,8 @@ import { Plus, Users, Receipt, Calculator, UserPlus, Trash2, Edit3, Check, X } f
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from 'firebase/firestore';
-import Sidebar from './components/ui/sidebar';
-import Header from './components/ui/header';
+import Sidebar from 'components/ui/sidebar';
+import Header from 'components/ui/header';
 
 const ExpenseSharingSystem = () => {
   const [groups, setGroups] = useState<any[]>([]);
