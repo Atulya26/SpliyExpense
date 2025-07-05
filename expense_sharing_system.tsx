@@ -407,18 +407,18 @@ const ExpenseSharingSystem = () => {
               {/* Left Column: Members, Balances, Settlements */}
               <div className="flex flex-col gap-8 xl:col-span-1">
                 {/* Members Card */}
-                <div className="bg-white rounded-2xl shadow-xl ring-1 ring-indigo-100 p-6 flex flex-col">
+                <div className="bg-white rounded-2xl shadow-xl ring-1 ring-indigo-100 p-6 flex flex-col relative group transition-all duration-200">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="bg-indigo-100 p-2 rounded-full"><Users className="h-5 w-5 text-indigo-600" /></div>
                     <h2 className="text-lg font-semibold text-gray-900">Members</h2>
-                    <button onClick={() => setShowAddMember(true)} className="ml-auto bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow-md transition-transform hover:scale-105 focus:ring-2 focus:ring-green-400"><UserPlus className="h-4 w-4" /></button>
+                    <button onClick={() => setShowAddMember(true)} className="ml-auto bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow-md transition-transform hover:scale-110 focus:ring-2 focus:ring-green-400 absolute right-6 top-6 opacity-0 group-hover:opacity-100 z-10"><UserPlus className="h-4 w-4" /></button>
                   </div>
                   <div className="space-y-3">
                     {activeGroup.members && activeGroup.members.length > 0 ? (
                       activeGroup.members.map((member: any) => (
-                        <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition-colors">
+                        <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:shadow-lg hover:bg-indigo-50 transition-all duration-150">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center font-bold text-indigo-700 text-sm uppercase">{member.name?.[0] || '?'}</div>
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-200 to-blue-200 flex items-center justify-center font-bold text-indigo-700 text-base uppercase shadow-inner border-2 border-white">{member.name?.[0] || '?'}</div>
                             <div>
                               <div className="font-medium text-gray-900">{member.name}</div>
                               <div className="text-xs text-gray-500">{member.email}</div>
@@ -440,9 +440,9 @@ const ExpenseSharingSystem = () => {
                   </div>
                   <div className="space-y-3">
                     {calculateBalances().map((balance, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 transition-colors">
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:shadow-lg hover:bg-indigo-50 transition-all duration-150">
                         <span className="font-medium text-gray-900">{balance.name}</span>
-                        <span className={`font-bold ${balance.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>${Math.abs(balance.balance).toFixed(2)} {balance.balance >= 0 ? 'gets back' : 'owes'}</span>
+                        <span className={`font-bold px-3 py-1 rounded-full text-xs ${balance.balance >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{balance.balance >= 0 ? `+ $${Math.abs(balance.balance).toFixed(2)} (gets back)` : `- $${Math.abs(balance.balance).toFixed(2)} (owes)`}</span>
                       </div>
                     ))}
                   </div>
@@ -455,8 +455,11 @@ const ExpenseSharingSystem = () => {
                   </div>
                   <div className="space-y-3">
                     {calculateSettlements().map((settlement, index) => (
-                      <div key={index} className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                        <div className="text-sm text-gray-900"><span className="font-medium">{settlement.from}</span> owes <span className="font-medium">{settlement.to}</span> <span className="font-bold text-blue-600">${settlement.amount}</span></div>
+                      <div key={index} className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border-l-4 border-blue-400">
+                        <span className="font-medium text-gray-900">{settlement.from}</span>
+                        <span className="text-gray-500">owes</span>
+                        <span className="font-medium text-gray-900">{settlement.to}</span>
+                        <span className="font-bold px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">${settlement.amount}</span>
                       </div>
                     ))}
                     {calculateSettlements().length === 0 && (
@@ -475,32 +478,32 @@ const ExpenseSharingSystem = () => {
                   </div>
                   <div className="overflow-x-auto">
                     {activeGroup.expenses && activeGroup.expenses.length > 0 ? (
-                      <table className="min-w-full text-sm">
-                        <thead>
+                      <table className="min-w-full text-sm border-separate border-spacing-y-2">
+                        <thead className="sticky top-0 z-10">
                           <tr className="bg-indigo-50 text-indigo-700">
-                            <th className="px-4 py-2 text-left font-semibold">Description</th>
+                            <th className="px-4 py-2 text-left font-semibold rounded-tl-xl">Description</th>
                             <th className="px-4 py-2 text-left font-semibold">Amount</th>
                             <th className="px-4 py-2 text-left font-semibold">Paid By</th>
                             <th className="px-4 py-2 text-left font-semibold">Split With</th>
                             <th className="px-4 py-2 text-left font-semibold">Date</th>
                             <th className="px-4 py-2 text-left font-semibold">Category</th>
-                            <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                            <th className="px-4 py-2 text-left font-semibold rounded-tr-xl">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {activeGroup.expenses.map((expense: any) => (
-                            <tr key={expense.id} className="border-b hover:bg-indigo-50 transition-colors">
-                              <td className="px-4 py-2 font-medium text-gray-900">{expense.description}</td>
+                            <tr key={expense.id} className="bg-gray-50 hover:bg-indigo-50 transition-all duration-150 shadow-sm rounded-xl">
+                              <td className="px-4 py-2 font-medium text-gray-900 rounded-l-xl">{expense.description}</td>
                               <td className="px-4 py-2 text-gray-900 font-bold">${expense.amount.toFixed(2)}</td>
                               <td className="px-4 py-2">{getMemberName(expense.paidBy)}</td>
                               <td className="px-4 py-2">{expense.splitWith.map((id: string) => getMemberName(id)).join(', ')}</td>
                               <td className="px-4 py-2">{expense.date}</td>
                               <td className="px-4 py-2">
                                 {expense.category && (
-                                  <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">{expense.category}</span>
+                                  <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full font-semibold">{expense.category}</span>
                                 )}
                               </td>
-                              <td className="px-4 py-2 flex gap-2">
+                              <td className="px-4 py-2 flex gap-2 rounded-r-xl">
                                 <button onClick={() => setEditingExpense(expense)} className="text-blue-600 hover:text-blue-800 p-1"><Edit3 className="h-4 w-4" /></button>
                                 <button onClick={() => deleteExpense(expense.id)} className="text-red-600 hover:text-red-800 p-1"><Trash2 className="h-4 w-4" /></button>
                               </td>
